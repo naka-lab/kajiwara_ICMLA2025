@@ -1,0 +1,25 @@
+{
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk (upLaTeX ➜ dvipdfmx)",
+      "command": "latexmk",
+      "args": [
+        "-gg",
+        "-e",
+        "$pdflatex = 'uplatex -synctex=1 -interaction=nonstopmode %O %S'",
+        "-e",
+        "$dvipdf   = 'dvipdfmx %O %S'",
+        "-e",
+        "$pdf_mode = 3",
+        "%DOC%"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "upLaTeX ➜ dvipdfmx",
+      "tools": ["latexmk (upLaTeX ➜ dvipdfmx)"]
+    }
+  ],
+  "latex-workshop.latex.recipe.default": "upLaTeX ➜ dvipdfmx"
+}
