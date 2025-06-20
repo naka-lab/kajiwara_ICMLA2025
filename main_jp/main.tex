@@ -131,13 +131,13 @@ ImperialDanceを開発し，5つのジャンル，20曲の音楽，20種類の�
 の導出がある\cite{Rahimi2007}．RFFは，スケーラブルなGPLVM（Gaussian Process Latent Variable Model）\cite{Zhang2023}\cite{Li2024}を可能にし，精度を
 損なうことなくハイブリッドHMMの高速化を実現してきた\cite{Jung2020}．これらの結果に動機づけられ，我々はGP-HSMMにRFFを導入した．
 
-RFFを導入することで様々なメリットがある一方，カーネル関数を近似しているため，通常のガウス過程に比べて性能が低下するという問題に対して，Metropolis-Hastings 法を用いた MCMC（Markov Chain Monte Carlo）法\cite{Hastings1970}を導入し，
-RFFで使用される周波数ベクトルおよび位相パラメータを最適化することで，近似のばらつきを抑え，
-より安定した性能を実現した．
+RFF によるカーネル近似は計算量を大幅に削減できる一方，サンプリングされた周波数・位相に依存して近似誤差がばらつくという課題がある．
+この問題に対し，本研究では Metropolis–Hastings (MH) アルゴリズムに基づく Markov Chain Monte Carlo (MCMC) 法 \cite{Hastings1970} を用いて 
+RFF のパラメータを探索し，近似誤差を統計的に抑制する．MCMC は確率モデルの事後分布を数値的に近似するためのサンプリング手法であり，受理確率により高精度なパラメータを優先的に選択しつつ，
+局所最適への収束を回避できるため，Gaussian Process の応用モデルで一般的に採用されている\cite{Neal1997}．
 
-加えて，ベイズ線形回帰における事後分布の逐次更新則に基づき，逐次学習\cite{Broderick2013}導入することで，熟練者の動作で学習したモデルに対して，新たな被験者の動作を
-逐次的に学習することができる．線形回帰モデルでは，単位動作が低次元のパラメータで表現されているため，追加学習前後のパラメータを定量的に比較することで，
-熟練者と新たな被験者の単位動作の違いを定量的に比較することが可能となった．
+加えて，ベイズ線形回帰における事後分布の逐次更新則に基づき，逐次学習\cite{Broderick2013}導入することで，熟練者の動作で学習したモデルに対して，新たな被験者の動作の
+逐次的な学習を可能にする．逐次学習は，新しいデータを得るたびにモデルを更新し，既存モデルを破棄せず順次パラメータを適応させる枠組みである．
 \section{Method}
 
 \subsection{Generative process}\label{AA}
@@ -852,6 +852,7 @@ The authors acknowledge the use of the CMU Motion Capture Database and the Imper
 \bibitem{Zhang2023} M. M. Zhang, G. W. Gundersen, and B. E. Engelhardt, “Bayesian non-linear latent variable modeling via random Fourier features,” \textit{arXiv preprint} arXiv:2306.08352, 2023.
 \bibitem{Li2024} Y. Li, Z. Lin, F. Yin, and M. M. Zhang, “Preventing model collapse in Gaussian process latent variable models,” \textit{arXiv preprint} arXiv:2404.01697, 2024.
 \bibitem{Jung2020} Y. Jung and J. Park, “Scalable hybrid HMM with Gaussian process emission for sequential time-series data clustering,” \textit{arXiv preprint} arXiv:2001.01917, 2020.
+\bibitem{Neal1997}R. M. Neal, “Monte Carlo implementation of Gaussian process models for Bayesian regression and classification,” \textit{arXiv preprint} arXiv:0706.3188, 2007.
 \end{thebibliography}
 
 \vspace{12pt}
