@@ -49,7 +49,7 @@ Gaussian Process Hidden Semi-Markov Model（GP-HSMM）がある．GP-HSMMは，�
 逐次的に学習することができる．線形回帰モデルでは，単位動作が低次元のパラメータで表現されているため，追加学習前後のパラメータを定量的に比較することで，
 熟練者と新たな被験者の単位動作の違いを定量的に比較することが可能となる．
 しかし，RFFを導入することで様々なメリットがある一方，カーネル関数を近似しているため，通常のガウス過程に比べて性能が低下する可能性がある．
-そこで，RFFによってサンプリングされる周波数ベクトルと位相パラメータを Metropolis-Hastings（MH）アルゴリズムに基づくマルコフ連鎖モンテカルロ（MCMC）法\cite{Hastings1970} で最適化し，近似精度を統計的に安定化させた．
+そこで，RFFによってサンプリングされるパラメータを Metropolis-Hastings（MH）アルゴリズムに基づくマルコフ連鎖モンテカルロ（MCMC）法で最適化し，近似精度を統計的に安定化させた．
 評価実験では，体操およびダンスの
 公開モーションキャプチャデータセットを用いて，提案手法が従来手法と同等の分節化精度を維持しながら，
 従来の手法ではおよそ87時間かかった処理がおよそ3分に大幅に短縮でき，複数被験者の動作の違いを関節単位で可視化・定量化できる支援システムとして有効であることを示した．
@@ -81,7 +81,7 @@ GP-HSMMは，高い表現力を持ち高精度に連続動作を分節化する�
 熟練者と新たな被験者の単位動作の違いを定量的に比較することが可能となる．
 
 しかし，RFFを導入することで様々なメリットがある一方，カーネル関数を近似しているため，通常のガウス過程に比べて性能が低下する可能性がある．
-そこで，RFFによってサンプリングされる周波数ベクトルと位相パラメータを Metropolis-Hastings（MH）アルゴリズムに基づくマルコフ連鎖モンテカルロ（MCMC）法\cite{Hastings1970} で最適化し，近似精度を統計的に安定化させた．
+そこで，RFFによってサンプリングされる周波数と位相パラメータを Metropolis-Hastings（MH）アルゴリズムに基づくマルコフ連鎖モンテカルロ（MCMC）法\cite{Hastings1970} で最適化し，近似精度を統計的に安定化させた．
 
 体操およびダンスの公開モーションキャプチャデータセットを用いた評価実験により，提案手法の有効性を検証した．
 体操データセットにおいては，RFF-GP-HSMMにMCMC法を導入することで，
@@ -229,6 +229,7 @@ $\bX_c$に含まれるデータ点数を$N_c$とすると，$\bK$のサイズは
 すなわち，処理する時系列データ点の数$N_c$が多くなれば行列$\bK$のサイズも大きくなり，その逆行列の演算に多くの計算時間が必要になる．
 これが現状のGP-HSMMの計算時間のボトルネックとなっている．
 
+\begin{comment}
 \subsection{Gaussian process approximation using RFF}
 ガウス過程では，カーネルトリックにより，基底関数$\bphi$を直接計算することなく非線形高次元空間で入出力の対応関係を捉えている．
 一方で，もし$k(t_p,t_q)\approx \bphi(t_p)^T \bphi(t_q)$となる，内積をとるとRBFカーネルの近似になるような基底関数$\bphi$を導出できれば，$\bK$を計算する必要のない線形回帰モデル$x'=\bw^T \bphi(t')$を適用することができる．
@@ -306,6 +307,42 @@ b^{(m)} &\sim& {\rm Uniform}(0, 2 \pi), \\
 \end{eqnarray}
 %
 すなわち，この$\bphi(t)$はガウスカーネルを近似する基底関数となっている．
+\end{comment}
+
+\subsection{Gaussian process approximation using RFF}
+GP-HSMM の最大の計算負荷は，分節数 $N_c$ に比例して肥大化する
+カーネル行列 $\bK$ の生成と
+逆行列演算である．
+Random Fourier Features（RFF）\cite{Rahimi2007} を用いると，
+式\eqref{eq:rbf}のRBFカーネルを
+\[
+k(t_p,t_q)\;\approx\;\bphi(t_p)^{\!\top}\bphi(t_q)
+\label{eq:rff_mc}
+\]
+と内積で近似でき，
+線形回帰モデル
+$x'=\bw^{\!\top}\bphi(t')$
+を適用することができる．
+
+\begin{align}
+\bphi(t)=
+\sqrt{\frac{2}{M}}
+\begin{bmatrix}
+\cos(\omega^{(1)} t + b^{(1)}) \\
+\cos(\omega^{(2)} t + b^{(2)}) \\
+\vdots \\
+\cos(\omega^{(M)} t + b^{(M)})
+\end{bmatrix},
+\label{eq:rff_phi}
+\end{align}
+ただし
+$\omega^{(m)}&\sim& p(\omega)$，
+$b^{(m)}\sim\mathrm{Uniform}(0,2\pi)$ を独立にサンプリングする．
+すなわち，この$\bphi(t)$はガウスカーネルを近似する基底関数となっている．
+この変換により，ガウス過程で最も重い処理である
+カーネル行列 $\bK$ の生成と逆行列計算そのものが不要となり，
+計算コストのボトルネックを解消できる．
+
 
 \subsection{MCMC-Optimized RFF Kernel}
 RFF によって近似された RBF カーネルは，次式で示すように定義する．
@@ -354,7 +391,6 @@ MH 法では，現在値 $(\boldsymbol{\omega},\boldsymbol{b})$ から多変量�
     &&\quad \times\,\sqrt{2}\cos(\omega^{\ast(m)}t_q + b^{\ast(m)})
   \label{eq:rff_kernel_opt}
 \end{eqnarray}
-ここで，$\hat{k}^{\ast}$ は MCMC によって最適化された RFF 近似カーネルであり，学習全体を通して利用される．
 
 \begin{comment}
 \subsection{Efficient Gaussian process approximation using RFF}
@@ -779,11 +815,11 @@ Fig.~\ref{fig:resultmotion} (b)に示す振り付け5の動作では，左手に
 を目的とし，Gaussian Process Hidden Semi-Markov Model（GP-HSMM）を拡張した新たなフレームワークを提案した．提案手法では，
 ガウス過程のカーネル近似にRandom Fourier Features（RFF）を用い，さらにマルコフ連鎖モンテカルロ法（MCMC）により
 その近似精度を統計的に最適化することで，従来のGP-HSMMと同等の分節化精度を維持しながら，計算時間の大幅な短縮を実現した．
-加えて，逐次学習を導入することで，初期モデルデータセットで学習した熟練者の知見を活かしつつ，新たな被験者の動作を段階的に取り込むことが可能となり，
-個人ごとの動作特性を柔軟にモデル化できるようになった．
+加えて，逐次学習を導入することで，熟練者の動作で学習したモデルに対して，新たな被験者の動作を
+逐次的に学習することが可能となり，個人ごとの動作特性を柔軟にモデル化できるようになった．
 
 体操およびダンスの公開モーションキャプチャデータセットに基づく実験を通じて，MCMCによるカーネル近似の安定化と
-逐次学習による適応的なモデル更新の有効性が示され，動作単位での関節ごとの違いを定量的に評価し，動作改善のための
+逐次学習による適応的なモデル更新の有効性が示され，熟練度の異なる複数の被験者の動作単位での関節ごとの違いを定量的に評価し，動作改善のための
 具体的なフィードバックを提供可能な支援システムを実現した．
 
 今後は，本システムをスポーツやリハビリなど動作の質や熟練度比較が求められる分野へ応用し，熟練者との比較に基づく個別支援を実現することで，
@@ -802,8 +838,8 @@ The authors acknowledge the use of the CMU Motion Capture Database and the Imper
 \bibitem{DanceMVP2024} X. Li, S. Wu, Z. Yang, and L. Yi, ``DanceMVP: Multi-task dance performance assessment via text prompting,'' in \textit{Proc. AAAI Conf. Artificial Intelligence}, vol. 38, no. 9, 2024, pp. 10270--10278.
 \bibitem{Nakamura2017} T. Nakamura, T. Nagai, D. Mochihashi, I. Kobayashi, H. Asoh, and M. Kaneko, “Segmenting continuous motions with hidden semi-Markov models and Gaussian processes,” \textit{Frontiers in Neurorobotics}, vol. 11, p. 67, 2017.
 \bibitem{Rahimi2007} A. Rahimi and B. Recht, “Random features for large-scale kernel machines,” in \textit{Advances in Neural Information Processing Systems}, J. Platt, D. Koller, Y. Singer, and S. Roweis, Eds., vol. 20. \textit{Curran Associates, Inc.}, 2007.
-\bibitem{Hastings1970} W. K. Hastings, “Monte Carlo sampling methods using Markov chains and their applications,” \textit{Biometrika}, vol. 57, no. 1, pp. 97--109, 1970.
 \bibitem{Broderick2013} T. Broderick, N. Boyd, A. Wibisono, A. C. Wilson, and M. I. Jordan, “Streaming variational Bayes,” \textit{arXiv preprint} arXiv:1307.6769, 2013.
+\bibitem{Hastings1970} W. K. Hastings, “Monte Carlo sampling methods using Markov chains and their applications,” \textit{Biometrika}, vol. 57, no. 1, pp. 97--109, 1970.
 \bibitem{Fox2011} E. B. Fox, E. B. Sudderth, M. I. Jordan, and A. S. Willsky, “Joint modeling of multiple related time series via the beta process,” \textit{arXiv preprint} arXiv:1112.1414, 2011.
 \bibitem{Matsubara2014} Y. Matsubara, Y. Sakurai, and C. Faloutsos, “Autoplait: Automatic mining of co-evolving time sequences,” in \textit{Proceedings of the 2014 ACM SIGMOD International Conference on Management of Data}, 2014, pp. 193--204.
 \bibitem{Sener2018} F. Sener and A. Yao, “Unsupervised learning and segmentation of complex activities from video,” in \textit{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}, 2018, pp. 8368--8376.
